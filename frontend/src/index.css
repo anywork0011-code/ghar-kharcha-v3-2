@@ -1,0 +1,12 @@
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{background:#0f0f13;color:#f1f0ff;font-family:'Baloo 2','Noto Sans Devanagari',sans-serif;overflow-x:hidden;}
+#root{min-height:100dvh;display:flex;flex-direction:column;max-width:430px;margin:0 auto;}
+button{font-family:'Baloo 2','Noto Sans Devanagari',sans-serif;cursor:pointer;border:none;outline:none;}
+input,select,textarea{font-family:'Baloo 2','Noto Sans Devanagari',sans-serif;outline:none;border:none;}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-thumb{background:#2a2a40;border-radius:4px;}
+option{background:#1a1a25;color:#f1f0ff;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+@keyframes slideUp{from{transform:translateX(-50%) translateY(100%);}to{transform:translateX(-50%) translateY(0);}}
+@keyframes spin{to{transform:rotate(360deg);}}
+.fade{animation:fadeUp .28s ease;}
