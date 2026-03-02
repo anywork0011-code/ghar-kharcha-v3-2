@@ -249,5 +249,5 @@ app.get('/api/admin/summary', async (req, res) => {
 // ── Health check ──────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }))
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT || 4000
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`))
