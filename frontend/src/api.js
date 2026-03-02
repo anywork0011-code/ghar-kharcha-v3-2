@@ -10,7 +10,7 @@
 //   For local development, vite.config.js proxies /api to localhost:3001
 // ─────────────────────────────────────────────────────────────────────────────
 
-const BASE = import.meta.env.VITE_API_URL || 'https://ghar-kharcha-v3-2.onrender.com'
+const BASE = import.meta.env.VITE_API_URL || ''
 
 async function req(method, path, body) {
   const opts = {
@@ -59,3 +59,14 @@ export const apiAdminSummary = () => get('/api/admin/summary')
 
 // Quick status update (paid/received/unpaid/not_received)
 export const apiUpdateStatus = (id, paymentStatus) => put(`/api/expenses/${id}`, { paymentStatus })
+
+// WhatsApp number per user (admin sets this)
+export const apiSetWhatsapp  = (userId, whatsappNumber) =>
+  fetch(`${BASE}/api/users/${userId}/whatsapp`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ whatsappNumber }),
+  }).then(r => r.json())
+
+// Get overdue / due-today deadlines for a user
+export const apiGetDeadlines = (userId) => get(`/api/expenses/deadlines?userId=${userId}`)

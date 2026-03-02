@@ -25,6 +25,7 @@ const userSchema = new mongoose.Schema({
   displayName: { type: String, default: '' },
   role:        { type: String, enum: ['admin', 'user'], default: 'user' },
   active:      { type: Boolean, default: true },
+  whatsappNumber: { type: String, default: '' },
   createdAt:   { type: Date, default: Date.now },
 })
 const User = mongoose.model('User', userSchema)
@@ -39,6 +40,8 @@ const expenseSchema = new mongoose.Schema({
   paymentStatus: { type: String, enum: ['paid', 'unpaid', 'received', 'not_received'], default: 'unpaid' },
   category:      { type: String, default: 'सामान्य' },
   note:          { type: String, default: '' },
+  phone:         { type: String, default: '' },
+  deadline:      { type: String, default: '' },  // DD/MM/YYYY optional
   date:          { type: String, required: true },  // DD/MM/YYYY
   createdAt:     { type: Date, default: Date.now },
 })
@@ -86,7 +89,7 @@ app.post('/api/auth/login', async (req, res) => {
     const { username, password } = req.body
     const user = await User.findOne({ username: username?.trim(), password, active: true })
     if (!user) return res.status(401).json({ error: 'चुकीचे नाव किंवा पासवर्ड' })
-    res.json({ _id: user._id, username: user.username, displayName: user.displayName, role: user.role })
+    res.json({ _id: user._id, username: user.username, displayName: user.displayName, role: user.role, whatsappNumber: user.whatsappNumber || '' })
   } catch (err) { res.status(500).json({ error: err.message }) }
 })
 
@@ -243,6 +246,32 @@ app.get('/api/admin/summary', async (req, res) => {
       })
     }
     res.json(result)
+  } catch (err) { res.status(500).json({ error: err.message }) }
+})
+
+// Update user whatsapp number (admin)
+app.patch('/api/users/:id/whatsapp', async (req, res) => {
+  try {
+    const { whatsappNumber } = req.body
+    const user = await User.findByIdAndUpdate(req.params.id, { whatsappNumber }, { new: true })
+    res.json({ _id: user._id, whatsappNumber: user.whatsappNumber })
+  } catch (err) { res.status(400).json({ error: err.message }) }
+})
+
+// Get deadlines due today or overdue for a user (for reminders)
+app.get('/api/expenses/deadlines', async (req, res) => {
+  try {
+    const { userId } = req.query
+    const q = {}
+    if (userId) q.userId = userId
+    const all = await Expense.find({ ...q, deadline: { $ne: '' } })
+    const today = new Date(); today.setHours(23, 59, 59, 999)
+    const due = all.filter(e => {
+      if (!e.deadline) return false
+      const d = parseDate(e.deadline)
+      return d && d <= today && e.paymentStatus !== 'paid' && e.paymentStatus !== 'received'
+    })
+    res.json(due)
   } catch (err) { res.status(500).json({ error: err.message }) }
 })
 
