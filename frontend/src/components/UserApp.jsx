@@ -5,7 +5,7 @@ import AddExpense   from './AddExpense.jsx'
 import DownloadPage from './DownloadPage.jsx'
 import {
   apiGetToday, apiGetExpenses, apiGetSummary, apiGetYearly,
-  apiAddExpense, apiUpdateExpense, apiDeleteExpense, apiUpdateStatus,
+  apiAddExpense, apiUpdateExpense, apiDeleteExpense, apiUpdateStatus, apiGetDeadlines,
 } from '../api.js'
 
 export default function UserApp({ user, onLogout, showToast }) {
@@ -17,18 +17,20 @@ export default function UserApp({ user, onLogout, showToast }) {
   const [editItem, setEdit]    = useState(null)
   const [saving,   setSaving]  = useState(false)
   const [listLoad, setListLoad]= useState(false)
+  const [deadlines, setDeadlines] = useState([])
   const [filters,  setFilters] = useState({ filter:'all', sortBy:'date_desc', search:'', startDate:'', endDate:'', statusFilter:'' })
 
   const uid = user._id
 
   const refresh = useCallback(async () => {
     try {
-      const [t, s, y] = await Promise.all([
+      const [t, s, y, dl] = await Promise.all([
         apiGetToday(uid),
         apiGetSummary(uid, 'all'),
         apiGetYearly(uid),
+        apiGetDeadlines(uid),
       ])
-      setToday(t); setSummary(s); setYearly(y)
+      setToday(t); setSummary(s); setYearly(y); setDeadlines(dl)
     } catch (e) { showToast('डेटा लोड झाला नाही: '+e.message, 'error') }
   }, [uid])
 
@@ -104,7 +106,7 @@ export default function UserApp({ user, onLogout, showToast }) {
 
       {/* Content */}
       <div style={{flex:1,overflowY:'auto',paddingBottom:64}}>
-        {tab==='home'     && <Dashboard todayExpenses={todayExp} summary={summary} yearlyData={yearly} onDelete={handleDelete} onEdit={handleEdit} onStatusChange={handleStatus} userName={user.displayName||user.username}/>}
+        {tab==='home'     && <Dashboard todayExpenses={todayExp} summary={summary} yearlyData={yearly} onDelete={handleDelete} onEdit={handleEdit} onStatusChange={handleStatus} userName={user.displayName||user.username} deadlines={deadlines} userWhatsapp={user.whatsappNumber||''}/>}
         {tab==='list'     && <ExpenseList expenses={allExp} filters={filters} setFilters={setFilters} onDelete={handleDelete} onEdit={handleEdit} onStatusChange={handleStatus} loading={listLoad}/>}
         {tab==='add'      && <AddExpense editExpense={editItem} onSave={handleSave} onCancel={()=>{setEdit(null);setTab('home')}} userId={uid} loading={saving}/>}
         {tab==='download' && <DownloadPage userId={uid} userName={user.displayName||user.username} showToast={showToast}/>}

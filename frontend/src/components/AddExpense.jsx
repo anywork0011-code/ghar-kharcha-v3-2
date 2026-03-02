@@ -8,9 +8,10 @@ export default function AddExpense({ editExpense, onSave, onCancel, userId, load
   const today = fmtDMY(new Date())
   const [form, setForm] = useState({
     name:'', amount:'', type:'pay', paymentStatus:'unpaid',
-    category:'सामान्य', date:today, note:'', userId
+    category:'सामान्य', date:today, note:'', phone:'', deadline:'', userId
   })
   const [showCal, setShowCal] = useState(false)
+  const [showDeadlineCal, setShowDeadlineCal] = useState(false)
   const [errors, setErrors]   = useState({})
 
   useEffect(() => {
@@ -19,7 +20,7 @@ export default function AddExpense({ editExpense, onSave, onCancel, userId, load
         name:editExpense.name||'', amount:String(editExpense.amount||''),
         type:editExpense.type||'pay', paymentStatus:editExpense.paymentStatus||'unpaid',
         category:editExpense.category||'सामान्य', date:editExpense.date||today,
-        note:editExpense.note||'', userId,
+        note:editExpense.note||'', phone:editExpense.phone||'', deadline:editExpense.deadline||'', userId,
       })
     }
   }, [editExpense])
@@ -119,12 +120,37 @@ export default function AddExpense({ editExpense, onSave, onCancel, userId, load
           <textarea value={form.note} onChange={e=>set('note',e.target.value)} placeholder="टीप लिहा..." rows={2} style={{...inp(false),resize:'none',lineHeight:1.6}}/>
         </div>
 
+        {/* Phone */}
+        <div>
+          <label style={{fontSize:10,color:'#9b9bb8',fontWeight:700,display:'block',marginBottom:7}}>📞 संपर्क नंबर (ऐच्छिक)</label>
+          <div style={{position:'relative'}}>
+            <span style={{position:'absolute',left:13,top:'50%',transform:'translateY(-50%)',color:'#9b9bb8',fontSize:14,pointerEvents:'none'}}>📞</span>
+            <input type="tel" inputMode="tel" value={form.phone} onChange={e=>set('phone',e.target.value)} placeholder="मोबाईल नंबर..." style={{...inp(false),paddingLeft:36}}/>
+          </div>
+        </div>
+
+        {/* Deadline */}
+        <div>
+          <label style={{fontSize:10,color:'#9b9bb8',fontWeight:700,display:'block',marginBottom:7}}>⏰ Deadline (ऐच्छिक)</label>
+          <div style={{display:'flex',gap:8,alignItems:'center'}}>
+            <button onClick={()=>setShowDeadlineCal(true)} style={{flex:1,background:'#1a1a25',border:`1px solid ${form.deadline?'#f59e0b40':'#2a2a40'}`,borderRadius:12,padding:'12px 14px',color:form.deadline?'#f59e0b':'#6b6b88',fontSize:13,textAlign:'left',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+              <span>{form.deadline||'तारीख निवडा (optional)'}</span>
+              <span style={{fontSize:16}}>⏰</span>
+            </button>
+            {form.deadline && (
+              <button onClick={()=>set('deadline','')} style={{background:'rgba(239,68,68,.1)',border:'1px solid rgba(239,68,68,.3)',color:'#ef4444',borderRadius:9,padding:'10px 12px',fontSize:12,fontWeight:700,flexShrink:0}}>✕</button>
+            )}
+          </div>
+          {form.deadline && <p style={{fontSize:10,color:'#f59e0b',marginTop:4}}>⚠️ या तारखेपर्यंत पूर्ण करणे आवश्यक</p>}
+        </div>
+
         <button onClick={()=>{if(validate())onSave({...form,amount:+form.amount})}} disabled={loading}
           style={{background:'linear-gradient(135deg,#f97316,#ef4444)',color:'#fff',borderRadius:13,padding:'14px',fontSize:15,fontWeight:800,boxShadow:'0 8px 24px rgba(249,115,22,.4)',opacity:loading?.7:1}}>
           {loading?'⏳ जतन...':(editExpense?'✅ नोंद अपडेट करा':'✅ नोंद जतन करा')}
         </button>
       </div>
       {showCal && <Calendar value={form.date} onChange={v=>set('date',v)} onClose={()=>setShowCal(false)}/>}
+      {showDeadlineCal && <Calendar value={form.deadline||today} onChange={v=>set('deadline',v)} onClose={()=>setShowDeadlineCal(false)}/>}
     </div>
   )
 }
