@@ -43,7 +43,7 @@ async function removeFromBackend(userId) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function NotificationManager({ user, showToast, onOpenExpense }) {
-  const [on,      setOn]      = useState(false)
+  const [on,      setOn]      = useState(true)
   const [loading, setLoading] = useState(false)
   const [perm,    setPerm]    = useState('default')
   const supported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window
@@ -84,18 +84,33 @@ export default function NotificationManager({ user, showToast, onOpenExpense }) 
           return
         }
         // 2. Register SW
+        console.log('📋 Service Worker path:', '/sw.js', 'Scope:', '/')
+        console.log('📋 API Base URL:', BASE)
         const reg = await navigator.serviceWorker.register('/sw.js', { scope:'/' })
+        console.log('✅ Service Worker registered:', reg)
         await navigator.serviceWorker.ready
         // 3. Get VAPID key + subscribe
-        const vapidKey = await getVapidKey()
-        const sub      = await subscribeBrowser(reg, vapidKey)
+        console.log('🔑 Fetching VAPID key from:', `${BASE}/api/push/vapid-public-key`)
+        const vapidKeyRes = await fetch(`${BASE}/api/push/vapid-public-key`)
+        if (!vapidKeyRes.ok) throw new Error(`VAPID fetch failed: ${vapidKeyRes.status} ${vapidKeyRes.statusText}`)
+        const vapidData = await vapidKeyRes.json()
+        const vapidKey = vapidData.publicKey
+        console.log('✅ VAPID key received:', vapidKey.substring(0, 20) + '...')
+        const sub = await subscribeBrowser(reg, vapidKey)
+        console.log('✅ Subscription created:', sub)
         // 4. Save to backend
-        await saveToBackend(user._id, sub)
+        console.log('💾 Saving subscription to backend...')
+        const saveRes = await fetch(`${BASE}/api/push/subscribe`, {
+          method: 'POST', headers: { 'Content-Type':'application/json' },
+          body: JSON.stringify({ userId: user._id, subscription: sub.toJSON() }),
+        })
+        if (!saveRes.ok) throw new Error(`Subscribe failed: ${saveRes.status} ${saveRes.statusText}`)
+        console.log('✅ Subscription saved')
         setOn(true)
         showToast('🔔 Notifications चालू! Deadline आल्यावर notify होईल ✅')
       }
     } catch (err) {
-      console.error('Notification toggle error:', err)
+      console.error('❌ Notification toggle error:', err)
       showToast('Error: ' + err.message, 'error')
     } finally { setLoading(false) }
   }
