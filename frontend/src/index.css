@@ -1,11 +1,51 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html,body{background:#0f0f13;color:#f1f0ff;font-family:'Baloo 2','Noto Sans Devanagari',sans-serif;overflow-x:hidden;}
+
+/* ── CSS Variables — default dark ── */
+:root{
+  --bg:        #0f0f13;
+  --surface:   #16161e;
+  --card:      #1a1a25;
+  --card2:     #22223a;
+  --border:    #2a2a40;
+  --text:      #f1f0ff;
+  --text2:     #9b9bb8;
+  --muted:     #6b6b88;
+  --input-bg:  #1a1a25;
+  --topbar-bg: #16161e;
+  --nav-bg:    #16161e;
+  --scrollbar: #2a2a40;
+}
+
+/* ── Light theme ── */
+html[data-theme="light"]{
+  --bg:        #f4f4f8;
+  --surface:   #ffffff;
+  --card:      #ffffff;
+  --card2:     #f0f0f6;
+  --border:    #e0e0ec;
+  --text:      #1a1a2e;
+  --text2:     #4a4a6a;
+  --muted:     #7a7a9a;
+  --input-bg:  #f8f8fc;
+  --topbar-bg: #ffffff;
+  --nav-bg:    #ffffff;
+  --scrollbar: #d0d0e0;
+}
+
+html,body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Baloo 2','Noto Sans Devanagari',sans-serif;
+  overflow-x:hidden;
+  transition: background .25s, color .25s;
+}
 #root{min-height:100dvh;display:flex;flex-direction:column;max-width:430px;margin:0 auto;}
 button{font-family:'Baloo 2','Noto Sans Devanagari',sans-serif;cursor:pointer;border:none;outline:none;}
 input,select,textarea{font-family:'Baloo 2','Noto Sans Devanagari',sans-serif;outline:none;border:none;}
 ::-webkit-scrollbar{width:3px;}
-::-webkit-scrollbar-thumb{background:#2a2a40;border-radius:4px;}
-option{background:#1a1a25;color:#f1f0ff;}
+::-webkit-scrollbar-thumb{background:var(--scrollbar);border-radius:4px;}
+option{background:var(--card);color:var(--text);}
+
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
 @keyframes slideUp{from{transform:translateX(-50%) translateY(100%);}to{transform:translateX(-50%) translateY(0);}}
 @keyframes spin{to{transform:rotate(360deg);}}
