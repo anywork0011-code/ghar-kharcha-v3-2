@@ -1,0 +1,19 @@
+{
+  "name": "घर खर्चा",
+  "short_name": "घर खर्चा",
+  "description": "घरगुती खर्च व्यवस्थापन",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f0f13",
+  "theme_color": "#f97316",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["finance", "utilities"]
+}

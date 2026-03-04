@@ -50,10 +50,10 @@ export default function LoginScreen({ onLogin, showToast }) {
           <button onClick={go} disabled={loading} style={{width:'100%',background:'linear-gradient(135deg,#f97316,#ef4444)',color:'#fff',borderRadius:12,padding:'14px',fontSize:15,fontWeight:800,boxShadow:'0 8px 24px rgba(249,115,22,.4)',opacity:loading?.7:1}}>
             {loading ? '⏳ प्रवेश...' : '✅ प्रवेश करा'}
           </button>
-          {/* <div style={{marginTop:14,padding:'10px 12px',background:'#0f0f13',borderRadius:9,border:'1px solid #2a2a40'}}>
+          <div style={{marginTop:14,padding:'10px 12px',background:'#0f0f13',borderRadius:9,border:'1px solid #2a2a40'}}>
             <p style={{fontSize:11,color:'#6b6b88',fontWeight:700,marginBottom:4}}>🔑 Default Admin:</p>
             <button onClick={()=>{setUn('Navnath');setPw('12345')}} style={{background:'transparent',color:'#f97316',fontSize:12,fontWeight:700,padding:0}}>👑 Navnath / 12345</button>
-          </div> */}
+          </div>
         </div>
       </div>
     </div>

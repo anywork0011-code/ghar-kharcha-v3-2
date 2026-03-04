@@ -120,13 +120,33 @@ export default function AddExpense({ editExpense, onSave, onCancel, userId, load
           <textarea value={form.note} onChange={e=>set('note',e.target.value)} placeholder="टीप लिहा..." rows={2} style={{...inp(false),resize:'none',lineHeight:1.6}}/>
         </div>
 
-        {/* Phone */}
+        {/* Phone with Contact Picker */}
         <div>
           <label style={{fontSize:10,color:'#9b9bb8',fontWeight:700,display:'block',marginBottom:7}}>📞 संपर्क नंबर (ऐच्छिक)</label>
-          <div style={{position:'relative'}}>
-            <span style={{position:'absolute',left:13,top:'50%',transform:'translateY(-50%)',color:'#9b9bb8',fontSize:14,pointerEvents:'none'}}>📞</span>
-            <input type="tel" inputMode="tel" value={form.phone} onChange={e=>set('phone',e.target.value)} placeholder="मोबाईल नंबर..." style={{...inp(false),paddingLeft:36}}/>
+          <div style={{display:'flex',gap:8}}>
+            <div style={{position:'relative',flex:1}}>
+              <span style={{position:'absolute',left:13,top:'50%',transform:'translateY(-50%)',color:'#9b9bb8',fontSize:14,pointerEvents:'none'}}>📞</span>
+              <input type="tel" inputMode="tel" value={form.phone} onChange={e=>set('phone',e.target.value)} placeholder="मोबाईल नंबर..." style={{...inp(false),paddingLeft:36}}/>
+            </div>
+            {'contacts' in navigator && 'ContactsManager' in window && (
+              <button type="button" onClick={async()=>{
+                try {
+                  const contacts = await navigator.contacts.select(['tel','name'],{multiple:false})
+                  if (contacts && contacts[0]) {
+                    const tel = contacts[0].tel?.[0] || ''
+                    const nm  = contacts[0].name?.[0] || ''
+                    if (tel) set('phone', tel.replace(/\s/g,''))
+                    if (nm && !form.name) set('name', nm)
+                  }
+                } catch(e){ console.log('Contact picker cancelled') }
+              }} style={{background:'rgba(96,165,250,.1)',border:'1px solid rgba(96,165,250,.3)',color:'#60a5fa',borderRadius:12,padding:'0 14px',fontSize:12,fontWeight:700,flexShrink:0,whiteSpace:'nowrap'}}>
+                👤 Contacts
+              </button>
+            )}
           </div>
+          <p style={{fontSize:10,color:'#444460',marginTop:4}}>
+            {'contacts' in navigator && 'ContactsManager' in window ? '👆 "Contacts" बटण दाबून contact निवडा' : '📱 Android Chrome मध्ये contact picker उपलब्ध आहे'}
+          </p>
         </div>
 
         {/* Deadline */}
