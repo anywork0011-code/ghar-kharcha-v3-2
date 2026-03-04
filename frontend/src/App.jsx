@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import useTheme from './useTheme.js'
 import LoginScreen from './components/LoginScreen.jsx'
 import UserApp     from './components/UserApp.jsx'
 import AdminApp    from './components/AdminApp.jsx'
@@ -24,7 +23,6 @@ function Toast({ toast }) {
 export default function App() {
   // Only the session (who is logged in) is stored in localStorage — NOT the data
   // All actual data lives in MongoDB via the API
-  const [theme, setTheme] = useTheme()
   const [user,  setUser]  = useState(() => {
     try { return JSON.parse(localStorage.getItem('gk_session')) } catch { return null }
   })
@@ -51,7 +49,7 @@ export default function App() {
         ? <LoginScreen onLogin={handleLogin} showToast={showToast}/>
         : user.role === 'admin'
           ? <AdminApp  user={user} onLogout={handleLogout} showToast={showToast}/>
-          : <UserApp   user={user} onLogout={handleLogout} showToast={showToast} theme={theme} setTheme={setTheme}/>
+          : <UserApp   user={user} onLogout={handleLogout} showToast={showToast}/>
       }
     </>
   )
