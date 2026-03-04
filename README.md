@@ -1,97 +1,85 @@
 # 🏠 घर खर्चा v3.0
 
 **Frontend → Netlify | Backend → Render | DB → MongoDB Atlas**
+**Push Notifications → Web Push (VAPID) | Cron → node-cron**
 
 ---
 
-## 📁 Project Structure
+## 🚀 Deploy Steps
 
-```
-ghar-kharcha-v3/
-├── backend/          ← Deploy to Render
-│   ├── index.js      ← Express + MongoDB server
-│   └── package.json
-└── frontend/         ← Deploy to Netlify
-    ├── src/
-    │   ├── api.js    ← All API calls (set VITE_API_URL here)
-    │   └── ...
-    └── package.json
-```
+### Step 1 — Backend → Render
 
----
-
-## 🚀 Step 1 — Deploy Backend to Render (Free)
-
-1. Go to [render.com](https://render.com) → Sign up (free)
-2. New → **Web Service**
-3. Connect your GitHub repo (or upload the `backend/` folder)
-4. Settings:
-   - **Root Directory:** `backend`
-   - **Build Command:** `npm install`
-   - **Start Command:** `node index.js`
-   - **Environment:** Node
-5. Click **Deploy**
-6. Copy your URL: `https://your-app-name.onrender.com`
-
-> ✅ MongoDB is already connected — same Atlas DB as before.
-> Admin is auto-seeded: **Navnath / 12345**
-
----
-
-## 🚀 Step 2 — Deploy Frontend to Netlify
-
-1. Go to [netlify.com](https://netlify.com) → New Site
-2. Connect GitHub repo or drag `frontend/` folder
-3. Build settings:
-   - **Build command:** `npm run build`
-   - **Publish directory:** `dist`
-4. **Environment Variables** → Add:
+1. [render.com](https://render.com) → New Web Service
+2. Upload / connect `backend/` folder
+3. **Build Command:** `npm install`
+4. **Start Command:** `node index.js`
+5. **Environment Variables** add:
    ```
-   VITE_API_URL = https://your-app-name.onrender.com
+   MONGO_URI     = mongodb+srv://gharKharcha:...
+   VAPID_PUBLIC  = BJAzPJmjC3OMCLTc4rIWI__mK4qvlTQe3xkHehfhMJzLkAVRSODMNlLYdP6dC9lD9cCZ9kxhjyyJ8v7O1qt2M9I
+   VAPID_PRIVATE = PCpTLjpcgYLnaoPuuW6FLpYuq85u1M_v32nOJ8pBwkQ
    ```
-   (Replace with your actual Render URL from Step 1)
-5. Deploy!
+6. Deploy → copy URL: `https://your-app.onrender.com`
+
+### Step 2 — Frontend → Netlify
+
+1. [netlify.com](https://netlify.com) → New Site → upload `frontend/`
+2. **Build:** `npm run build` | **Publish:** `dist`
+3. **Environment Variables:**
+   ```
+   VITE_API_URL = https://your-app.onrender.com
+   ```
+4. Deploy!
 
 ---
 
-## 💻 Local Development
+## 🔔 Push Notification Flow
 
-```bash
-# Terminal 1 — Backend
-cd backend
-npm install
-node index.js        # runs on :3001
+```
+User opens app → clicks "Enable"
+  → Browser asks permission
+  → SW registered
+  → VAPID public key fetched from backend
+  → Browser subscribed (endpoint created)
+  → Subscription saved to MongoDB
 
-# Terminal 2 — Frontend
-cd frontend
-npm install
-npm run dev          # runs on :5173 (proxies /api to :3001)
+Backend cron (9:00 AM + 6:00 PM IST daily):
+  → Find all expenses with deadline today/tomorrow, unpaid
+  → For each → find user's push subscription
+  → webpush.sendNotification() → Google FCM → Android Chrome
+  → Notification appears even if app is closed
+
+User taps notification:
+  → 📋 View  → app opens, shows that expense
+  → 📲 WA    → WhatsApp opens with pre-filled message
+  → 📞 Call  → app opens (call tap needed in app)
 ```
 
-No need to set VITE_API_URL locally — vite.config.js handles the proxy.
+---
+
+## 🧪 Testing Push
+
+After deploying, call this API to send a test notification:
+```
+POST https://your-app.onrender.com/api/push/test
+{ "userId": "USER_ID_FROM_MONGODB" }
+```
+
+Or tap "🧪 Test" button in the app after enabling notifications.
 
 ---
 
-## 🔑 Default Login
+## 🔑 Login
 
 | नाव     | पासवर्ड | भूमिका   |
 |---------|---------|---------|
 | Navnath | 12345   | 👑 Admin |
 
-Admin panel मधून नवीन users तयार करा.
-
 ---
 
-## ✅ Features
+## ⚠️ Important — VAPID Keys
 
-- मराठी UI
-- Pay / Receive tracking (भरावे लागेल / मिळणार)
-- Payment status: Paid ✅ / Unpaid 🔴 / Received ✅ / Pending 🟡
-- Status changes only via Edit form (no accidental toggles)
-- Calendar date picker
-- 5-year summary on dashboard
-- Filters: today/week/month/custom, status, sort
-- PDF export (HTML print → Save as PDF, perfect Marathi)
-- CSV export
-- Admin: per-user summaries, user management
-- Data in MongoDB Atlas (persistent, multi-device)
+**Never change VAPID keys after first deploy.**
+If you change them, all existing browser subscriptions break and users must re-enable notifications.
+
+The keys in `.env.example` are pre-generated for this app. Use them as-is.

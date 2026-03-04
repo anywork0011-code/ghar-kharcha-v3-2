@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Calendar, { fmtDMY, parseDMY } from './Calendar.jsx'
 import { apiGetExpenses } from '../api.js'
+import NotificationManager from './NotificationManager.jsx'
 
 const MONTHS = ['जानेवारी','फेब्रुवारी','मार्च','एप्रिल','मे','जून','जुलै','ऑगस्ट','सप्टेंबर','ऑक्टोबर','नोव्हेंबर','डिसेंबर']
 const fmt = n => '₹' + Number(n||0).toLocaleString('en-IN')
@@ -56,7 +57,7 @@ tbody td{padding:8px 10px;border-bottom:1px solid #eee;font-size:12px;vertical-a
 <div class="footer">घर खर्चा v3.0 — ${fmtDMY(new Date())} रोजी तयार केले</div></body></html>`
 }
 
-export default function DownloadPage({ userId, userName, showToast }) {
+export default function DownloadPage({ userId, userName, showToast, user, theme, setTheme }) {
   const today = new Date()
   const [mode,    setMode]    = useState('monthly')
   const [selMon,  setSelMon]  = useState(today.getMonth())
@@ -111,29 +112,29 @@ export default function DownloadPage({ userId, userName, showToast }) {
     setTimeout(()=>URL.revokeObjectURL(url),8000)
   }
 
-  const calBtn = {width:'100%',background:'#22223a',border:'1px solid #2a2a40',borderRadius:10,padding:'10px 13px',fontSize:12,textAlign:'left',display:'flex',justifyContent:'space-between',alignItems:'center',color:'#f1f0ff'}
+  const calBtn = {width:'100%',background:'var(--card2)',border:'1px solid var(--border)',borderRadius:10,padding:'10px 13px',fontSize:12,textAlign:'left',display:'flex',justifyContent:'space-between',alignItems:'center',color:'var(--text)'}
 
   return (
     <div style={{paddingBottom:20}} className="fade">
-      <div style={{background:'#16161e',padding:'12px 16px',borderBottom:'1px solid #2a2a40'}}>
+      <div style={{background:'var(--surface)',padding:'12px 16px',borderBottom:'1px solid var(--border)'}}>
         <h2 style={{fontSize:20,fontWeight:800}}>📥 डाउनलोड करा</h2>
-        <p style={{fontSize:12,color:'#6b6b88',marginTop:3}}>खर्चाचा अहवाल काढा</p>
+        <p style={{fontSize:12,color:'var(--muted)',marginTop:3}}>खर्चाचा अहवाल काढा</p>
       </div>
       <div style={{padding:'14px',display:'flex',flexDirection:'column',gap:13}}>
         <div style={{background:'rgba(59,130,246,.08)',border:'1px solid rgba(59,130,246,.25)',borderRadius:11,padding:'11px 13px'}}>
           <p style={{fontSize:11,color:'#60a5fa',fontWeight:700,marginBottom:3}}>💡 PDF कसे काम करते?</p>
-          <p style={{fontSize:11,color:'#9b9bb8',lineHeight:1.8}}>PDF बटण → नवीन tab उघडेल → <strong style={{color:'#f97316'}}>🖨️ PDF म्हणून Save करा</strong> → Browser Print → Save as PDF</p>
+          <p style={{fontSize:11,color:'var(--text2)',lineHeight:1.8}}>PDF बटण → नवीन tab उघडेल → <strong style={{color:'#f97316'}}>🖨️ PDF म्हणून Save करा</strong> → Browser Print → Save as PDF</p>
         </div>
 
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',background:'#1a1a25',borderRadius:12,padding:4,border:'1px solid #2a2a40'}}>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',background:'var(--card)',borderRadius:12,padding:4,border:'1px solid var(--border)'}}>
           {[['monthly','📅 महिनानिहाय'],['custom','🗓 कस्टम']].map(([m,l])=>(
             <button key={m} onClick={()=>setMode(m)} style={{padding:'10px',borderRadius:9,fontWeight:700,fontSize:13,background:mode===m?'linear-gradient(135deg,#3b82f6,#1d4ed8)':'transparent',color:mode===m?'#fff':'#6b6b88'}}>{l}</button>
           ))}
         </div>
 
         {mode==='monthly' && (
-          <div style={{background:'#1a1a25',borderRadius:13,padding:13,border:'1px solid #2a2a40'}}>
-            <p style={{fontSize:10,color:'#6b6b88',fontWeight:700,marginBottom:9}}>महिना निवडा</p>
+          <div style={{background:'var(--card)',borderRadius:13,padding:13,border:'1px solid var(--border)'}}>
+            <p style={{fontSize:10,color:'var(--muted)',fontWeight:700,marginBottom:9}}>महिना निवडा</p>
             <div style={{display:'flex',gap:5,marginBottom:10,flexWrap:'wrap'}}>
               {[2023,2024,2025,2026].map(y=>(
                 <button key={y} onClick={()=>setSelYr(y)} style={{flex:1,padding:'6px 4px',borderRadius:7,fontSize:11,fontWeight:700,background:selYr===y?'#f97316':'#22223a',color:selYr===y?'#fff':'#9b9bb8',border:`1px solid ${selYr===y?'#f97316':'#2a2a40'}`}}>{y}</button>
@@ -148,13 +149,13 @@ export default function DownloadPage({ userId, userName, showToast }) {
         )}
 
         {mode==='custom' && (
-          <div style={{background:'#1a1a25',borderRadius:13,padding:13,border:'1px solid #2a2a40',display:'flex',flexDirection:'column',gap:10}}>
+          <div style={{background:'var(--card)',borderRadius:13,padding:13,border:'1px solid var(--border)',display:'flex',flexDirection:'column',gap:10}}>
             <div>
-              <p style={{fontSize:10,color:'#6b6b88',fontWeight:700,marginBottom:6}}>पासून</p>
+              <p style={{fontSize:10,color:'var(--muted)',fontWeight:700,marginBottom:6}}>पासून</p>
               <button onClick={()=>setShowCalS(true)} style={{...calBtn,color:startD?'#f1f0ff':'#6b6b88'}}><span>{startD||'तारीख निवडा'}</span><span>📅</span></button>
             </div>
             <div>
-              <p style={{fontSize:10,color:'#6b6b88',fontWeight:700,marginBottom:6}}>पर्यंत</p>
+              <p style={{fontSize:10,color:'var(--muted)',fontWeight:700,marginBottom:6}}>पर्यंत</p>
               <button onClick={()=>setShowCalE(true)} style={{...calBtn,color:endD?'#f1f0ff':'#6b6b88'}}><span>{endD||'तारीख निवडा'}</span><span>📅</span></button>
             </div>
           </div>
@@ -164,21 +165,21 @@ export default function DownloadPage({ userId, userName, showToast }) {
           <p style={{fontSize:13,color:'#f97316',fontWeight:700}}>📆 {getLabel()}</p>
         </div>
 
-        <button onClick={handlePreview} disabled={loading} style={{background:'#22223a',color:'#9b9bb8',border:'1px solid #2a2a40',borderRadius:11,padding:'12px',fontSize:14,fontWeight:700}}>
+        <button onClick={handlePreview} disabled={loading} style={{background:'var(--card2)',color:'var(--text2)',border:'1px solid var(--border)',borderRadius:11,padding:'12px',fontSize:14,fontWeight:700}}>
           {loading?'⏳ लोड...':'👁️ आधावलोकन पहा'}
         </button>
 
         {preview && (
-          <div style={{background:'#1a1a25',borderRadius:13,padding:13,border:'1px solid #2a2a40'}}>
+          <div style={{background:'var(--card)',borderRadius:13,padding:13,border:'1px solid var(--border)'}}>
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:8}}>
               {[['भरावे',preview.filter(e=>e.type==='pay').reduce((s,e)=>s+e.amount,0),'#ef4444'],['मिळणार',preview.filter(e=>e.type==='receive').reduce((s,e)=>s+e.amount,0),'#22c55e']].map(([l,v,c])=>(
-                <div key={l} style={{textAlign:'center',background:'#22223a',borderRadius:9,padding:'9px'}}>
-                  <div style={{fontSize:9,color:'#6b6b88',fontWeight:700}}>{l}</div>
+                <div key={l} style={{textAlign:'center',background:'var(--card2)',borderRadius:9,padding:'9px'}}>
+                  <div style={{fontSize:9,color:'var(--muted)',fontWeight:700}}>{l}</div>
                   <div style={{fontSize:14,fontWeight:800,color:c}}>{fmt(v)}</div>
                 </div>
               ))}
             </div>
-            <p style={{fontSize:11,color:'#6b6b88',textAlign:'center'}}>{preview.length} नोंदी सापडल्या</p>
+            <p style={{fontSize:11,color:'var(--muted)',textAlign:'center'}}>{preview.length} नोंदी सापडल्या</p>
           </div>
         )}
 
@@ -186,6 +187,61 @@ export default function DownloadPage({ userId, userName, showToast }) {
           <button onClick={downloadCSV} disabled={loading} style={{background:'linear-gradient(135deg,#22c55e,#16a34a)',color:'#fff',borderRadius:12,padding:'13px',fontSize:14,fontWeight:800,boxShadow:'0 4px 16px rgba(34,197,94,.3)'}}>📊 CSV</button>
           <button onClick={downloadPDF} disabled={loading} style={{background:'linear-gradient(135deg,#ef4444,#dc2626)',color:'#fff',borderRadius:12,padding:'13px',fontSize:14,fontWeight:800,boxShadow:'0 4px 16px rgba(239,68,68,.3)'}}>📄 PDF</button>
         </div>
+
+        {/* ── Divider ── */}
+        <div style={{borderTop:'1px solid var(--border)',margin:'4px 0'}}/>
+
+        {/* ── Notification Toggle ── */}
+        <div>
+          <p style={{fontSize:10,color:'var(--muted)',fontWeight:700,letterSpacing:1.3,textTransform:'uppercase',marginBottom:8}}>🔔 Notifications</p>
+          {user && <NotificationManager user={user} showToast={showToast} onOpenExpense={()=>{}}/>}
+        </div>
+
+        {/* ── Divider ── */}
+        <div style={{borderTop:'1px solid var(--border)',margin:'4px 0'}}/>
+
+        {/* ── Theme Selector ── */}
+        <div>
+          <p style={{fontSize:10,color:'var(--muted)',fontWeight:700,letterSpacing:1.3,textTransform:'uppercase',marginBottom:8}}>🎨 Theme</p>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',background:'var(--card)',borderRadius:13,padding:4,border:'1px solid var(--border)',gap:4}}>
+            {[
+              { id:'dark',   icon:'🌙', label:'Dark'   },
+              { id:'light',  icon:'☀️', label:'Light'  },
+              { id:'system', icon:'📱', label:'System' },
+            ].map(t => (
+              <button
+                key={t.id}
+                onClick={() => setTheme && setTheme(t.id)}
+                style={{
+                  padding:'10px 4px',
+                  borderRadius:10,
+                  fontWeight:700,
+                  fontSize:12,
+                  display:'flex',
+                  flexDirection:'column',
+                  alignItems:'center',
+                  gap:4,
+                  background: theme===t.id
+                    ? 'linear-gradient(135deg,#f97316,#ef4444)'
+                    : 'transparent',
+                  color: theme===t.id ? '#fff' : 'var(--muted)',
+                  boxShadow: theme===t.id ? '0 3px 10px rgba(249,115,22,.3)' : 'none',
+                  transition:'all .2s',
+                  border: theme===t.id ? 'none' : '1px solid transparent',
+                }}
+              >
+                <span style={{fontSize:18}}>{t.icon}</span>
+                <span>{t.label}</span>
+              </button>
+            ))}
+          </div>
+          <p style={{fontSize:10,color:'var(--muted)',marginTop:7,textAlign:'center'}}>
+            {theme==='dark'   && '🌙 Dark mode चालू आहे'}
+            {theme==='light'  && '☀️ Light mode चालू आहे'}
+            {theme==='system' && '📱 Phone च्या theme नुसार बदलेल'}
+          </p>
+        </div>
+
       </div>
       {showCalS && <Calendar value={startD} onChange={v=>{setStartD(v);setShowCalS(false)}} onClose={()=>setShowCalS(false)}/>}
       {showCalE && <Calendar value={endD}   onChange={v=>{setEndD(v);setShowCalE(false)}}   onClose={()=>setShowCalE(false)}/>}

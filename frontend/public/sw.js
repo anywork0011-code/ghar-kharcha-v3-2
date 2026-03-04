@@ -1,30 +1,31 @@
 // 🏠 घर खर्चा — Service Worker v3.0
-const CACHE = 'ghar-kharcha-v3'
+// Handles Web Push notifications from backend
 
 self.addEventListener('install',  () => self.skipWaiting())
-self.addEventListener('activate', e => e.waitUntil(clients.claim()))
+self.addEventListener('activate', e  => e.waitUntil(clients.claim()))
 
-// ── Push received ─────────────────────────────────────────────────────────────
+// ── Push event: backend sends → SW receives → shows notification ──────────────
 self.addEventListener('push', e => {
+  if (!e.data) return
   let d = {}
-  try { d = e.data ? e.data.json() : {} } catch { d = {} }
+  try { d = e.data.json() } catch { return }
 
-  const title = d.title || '⏰ Deadline — घर खर्चा'
-  const opts  = {
-    body:    d.body || 'एक payment deadline आली आहे!',
-    icon:    '/favicon.svg',
-    badge:   '/favicon.svg',
-    tag:     d.tag || 'gk-deadline',
-    vibrate: [200,100,200,100,300],
-    requireInteraction: true,
-    data:    d,
+  const title = d.title || '⏰ घर खर्चा Reminder'
+  const options = {
+    body:               d.body || '',
+    icon:               '/favicon.svg',
+    badge:              '/favicon.svg',
+    tag:                d.tag  || 'gk-reminder',
+    vibrate:            [200, 100, 200, 100, 300],
+    requireInteraction: true,   // stays until user taps
+    data:               d,
     actions: [
-      { action:'view',      title:'📋 नोंद पहा'  },
-      { action:'whatsapp',  title:'📲 WhatsApp'  },
-      { action:'call',      title:'📞 Call करा'  },
+      { action: 'view',     title: '📋 नोंद पहा' },
+      { action: 'whatsapp', title: '📲 WhatsApp'  },
+      { action: 'call',     title: '📞 Call करा'  },
     ],
   }
-  e.waitUntil(self.registration.showNotification(title, opts))
+  e.waitUntil(self.registration.showNotification(title, options))
 })
 
 // ── Notification click ────────────────────────────────────────────────────────
@@ -34,56 +35,36 @@ self.addEventListener('notificationclick', e => {
   e.notification.close()
 
   if (action === 'whatsapp' && d.phone) {
-    const clean = d.phone.replace(/\D/g,'')
-    const num   = clean.startsWith('91') ? clean : '91'+clean
-    const msg   = `🏠 *घर खर्चा Reminder*\n\n📋 *${d.name||''}*\n💰 रक्कम: *₹${Number(d.amount||0).toLocaleString('en-IN')}*\n⏰ Deadline: ${d.deadline||''}\n\nकृपया लवकर settle करा!`
-    e.waitUntil(clients.openWindow('https://wa.me/'+num+'?text='+encodeURIComponent(msg)))
+    const statusMap = { paid:'भरले ✅', unpaid:'देणे बाकी 🟡', received:'मिळाले ✅', not_received:'मिळणे बाकी 🟡' }
+    const amt  = Number(d.amount||0).toLocaleString('en-IN')
+    const stat = statusMap[d.paymentStatus] || 'देणे बाकी 🟡'
+    const dl   = d.deadline ? '\n⏰ अंतिम तारीख: ' + d.deadline : ''
+    const nt   = d.note     ? '\n📝 टीप: '         + d.note     : ''
+    const msg  = '📋 *' + d.name + '*\n💰 रक्कम: ₹' + amt + '\n📊 स्थिती: ' + stat + '\n📅 तारीख: ' + d.date + dl + nt + '\n_Sent via घर खर्चा App_'
+    const clean = (d.phone).replace(/\D/g,'')
+    const num   = clean.startsWith('91') ? clean : '91' + clean
+    e.waitUntil(clients.openWindow('https://wa.me/' + num + '?text=' + encodeURIComponent(msg)))
     return
   }
+
   if (action === 'call' && d.phone) {
-    e.waitUntil(clients.openWindow('tel:'+d.phone))
+    // Open app first — then user can tap call (tel: can't be opened directly from SW)
+    e.waitUntil(focusOrOpen('/?action=call&phone=' + encodeURIComponent(d.phone)))
     return
   }
-  // Default — open app, pass expenseId so it can highlight that record
-  e.waitUntil(
-    clients.matchAll({ type:'window', includeUncontrolled:true }).then(list => {
-      for (const c of list) {
-        if ('focus' in c) {
-          c.postMessage({ type:'OPEN_EXPENSE', expenseId: d.expenseId })
-          return c.focus()
-        }
+
+  // Default: open / focus app and highlight the expense
+  e.waitUntil(focusOrOpen('/?expense=' + (d.expenseId || '')))
+})
+
+function focusOrOpen(url) {
+  return clients.matchAll({ type:'window', includeUncontrolled:true }).then(list => {
+    for (const c of list) {
+      if ('focus' in c) {
+        c.postMessage({ type:'OPEN_EXPENSE', expenseId: url.includes('expense=') ? url.split('expense=')[1] : null })
+        return c.focus()
       }
-      return clients.openWindow('/?expense='+d.expenseId)
-    })
-  )
-})
-
-// ── Periodic background sync (Chrome Android) ─────────────────────────────────
-self.addEventListener('periodicsync', e => {
-  if (e.tag === 'gk-deadlines') e.waitUntil(bgCheckDeadlines())
-})
-
-async function bgCheckDeadlines() {
-  try {
-    const cache  = await caches.open(CACHE)
-    const res    = await cache.match('gk-user')
-    if (!res) return
-    const user   = await res.json()
-    const resp   = await fetch('/api/expenses/deadlines?userId='+user._id)
-    const due    = await resp.json()
-    for (const exp of (due||[])) {
-      const d    = new Date(exp.deadline.split('/').reverse().join('-'))
-      const now  = new Date(); now.setHours(0,0,0,0)
-      const diff = Math.floor((d-now)/(864e5))
-      const lbl  = diff<0 ? Math.abs(diff)+' दिवस उशीर!' : diff===0 ? 'आज Deadline!' : diff+' दिवस बाकी'
-      await self.registration.showNotification('⏰ '+lbl+' — '+exp.name, {
-        body:    '💰 ₹'+Number(exp.amount).toLocaleString('en-IN')+' | 📅 '+exp.deadline,
-        icon:    '/favicon.svg', badge:'/favicon.svg',
-        tag:     'gk-exp-'+exp._id,
-        vibrate: [200,100,200], requireInteraction:true,
-        data:    { expenseId:exp._id, phone:exp.phone||'', amount:exp.amount, name:exp.name, deadline:exp.deadline },
-        actions: [{action:'view',title:'📋 पहा'},{action:'whatsapp',title:'📲 WhatsApp'},{action:'call',title:'📞 Call'}],
-      })
     }
-  } catch(err) { console.log('SW bg check err:', err) }
+    return clients.openWindow(url)
+  })
 }

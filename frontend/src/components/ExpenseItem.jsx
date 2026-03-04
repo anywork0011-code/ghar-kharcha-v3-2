@@ -21,7 +21,7 @@ function deadlineStatus(deadline, paymentStatus) {
   if (diff < 0)   return { label:`⚠️ ${Math.abs(diff)} दिवस उशीर!`, color:'#ef4444', bg:'rgba(239,68,68,.12)', border:'rgba(239,68,68,.3)', urgent:true }
   if (diff === 0) return { label:'🔴 आज Deadline!',                  color:'#ef4444', bg:'rgba(239,68,68,.12)', border:'rgba(239,68,68,.3)', urgent:true }
   if (diff <= 3)  return { label:`⏰ ${diff} दिवस बाकी`,             color:'#f59e0b', bg:'rgba(245,158,11,.12)', border:'rgba(245,158,11,.3)', urgent:false }
-  return            { label:`📅 ${deadline} पर्यंत`,                 color:'#9b9bb8', bg:'rgba(155,155,184,.08)', border:'rgba(155,155,184,.2)', urgent:false }
+  return            { label:`📅 ${deadline} पर्यंत`,                 color:'var(--text2)', bg:'rgba(155,155,184,.08)', border:'rgba(155,155,184,.2)', urgent:false }
 }
 
 const STATUS_WA = {
@@ -80,7 +80,7 @@ export default function ExpenseItem({ expense: e, onEdit, onDelete, onStatusChan
     <>
       <div
         onClick={() => setDetail(true)}
-        style={{background:'#1a1a25', borderRadius:14, border:`1px solid ${dl?.urgent?'rgba(239,68,68,.35)':'#2a2a40'}`, overflow:'hidden', cursor:'pointer',
+        style={{background:'var(--card)', borderRadius:14, border:`1px solid ${dl?.urgent?'rgba(239,68,68,.35)':'#2a2a40'}`, overflow:'hidden', cursor:'pointer',
           boxShadow: dl?.urgent ? '0 0 0 1px rgba(239,68,68,.15)' : 'none',
           transition:'transform .1s', active:{transform:'scale(.98)'}}}
       >
@@ -107,19 +107,19 @@ export default function ExpenseItem({ expense: e, onEdit, onDelete, onStatusChan
           </div>
           <div style={{flex:1, minWidth:0}}>
             <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start'}}>
-              <p style={{fontWeight:700, fontSize:14, color:'#f1f0ff', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'56%'}}>{e.name}</p>
+              <p style={{fontWeight:700, fontSize:14, color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'56%'}}>{e.name}</p>
               <p style={{fontWeight:800, fontSize:15, color:isPay?'#ef4444':'#22c55e', flexShrink:0}}>{isPay?'−':'+'} {fmt(e.amount)}</p>
             </div>
             <div style={{display:'flex', gap:5, marginTop:4, flexWrap:'wrap', alignItems:'center'}}>
-              <span style={{fontSize:9, color:'#6b6b88', background:'#22223a', padding:'2px 7px', borderRadius:20}}>{e.category}</span>
-              <span style={{fontSize:9, color:'#6b6b88'}}>📅 {e.date}</span>
+              <span style={{fontSize:9, color:'var(--muted)', background:'var(--card2)', padding:'2px 7px', borderRadius:20}}>{e.category}</span>
+              <span style={{fontSize:9, color:'var(--muted)'}}>📅 {e.date}</span>
               <span style={{fontSize:9, fontWeight:700, color:status.color, background:status.bg, padding:'2px 7px', borderRadius:20, border:`1px solid ${status.border}`}}>{status.label}</span>
               {dl && !dl.urgent && (
                 <span style={{fontSize:9, fontWeight:700, color:dl.color, background:dl.bg, padding:'2px 7px', borderRadius:20, border:`1px solid ${dl.border}`}}>{dl.label}</span>
               )}
             </div>
             {e.phone && <p style={{fontSize:10, color:'#60a5fa', marginTop:3}}>📞 {e.phone}</p>}
-            {e.note  && <p style={{fontSize:10, color:'#9b9bb8', marginTop:2, fontStyle:'italic'}}>"{e.note}"</p>}
+            {e.note  && <p style={{fontSize:10, color:'var(--text2)', marginTop:2, fontStyle:'italic'}}>"{e.note}"</p>}
           </div>
         </div>
 
@@ -136,7 +136,7 @@ export default function ExpenseItem({ expense: e, onEdit, onDelete, onStatusChan
 
         {/* Action buttons */}
         {hasActions && (
-          <div style={{display:'flex', borderTop:'1px solid #2a2a40', background:'#16161e'}}>
+          <div style={{display:'flex', borderTop:'1px solid var(--border)', background:'var(--surface)'}}>
             {hasMarkDone && (
               <button onClick={handleMarkDone} disabled={busy} style={{flex:1.6, padding:'10px 6px', background:busy?'rgba(34,197,94,.05)':'rgba(34,197,94,.08)', color:'#22c55e', fontSize:11, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', gap:4, borderRight:(hasEdit||hasDelete)?'1px solid #2a2a40':'none', opacity:busy?.6:1}}>
                 {busy ? '⏳' : isPay ? '✅ Paid करा' : '✅ Received करा'}
