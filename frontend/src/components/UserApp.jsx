@@ -3,13 +3,13 @@ import Dashboard    from './Dashboard.jsx'
 import ExpenseList  from './ExpenseList.jsx'
 import AddExpense   from './AddExpense.jsx'
 import DownloadPage from './DownloadPage.jsx'
-import NotificationManager, { requestNotificationPermission } from './NotificationManager.jsx'
+import NotificationManager from './NotificationManager.jsx'
 import {
   apiGetToday, apiGetExpenses, apiGetSummary, apiGetYearly,
   apiAddExpense, apiUpdateExpense, apiDeleteExpense, apiUpdateStatus, apiGetDeadlines,
 } from '../api.js'
 
-export default function UserApp({ user, onLogout, showToast }) {
+export default function UserApp({ user, onLogout, showToast, theme, setTheme }) {
   const [tab,      setTab]     = useState('home')
   const [todayExp, setToday]   = useState([])
   const [allExp,   setAll]     = useState([])
@@ -19,7 +19,6 @@ export default function UserApp({ user, onLogout, showToast }) {
   const [saving,   setSaving]  = useState(false)
   const [listLoad, setListLoad]= useState(false)
   const [deadlines, setDeadlines] = useState([])
-  const [notifPerm, setNotifPerm] = useState(() => typeof Notification !== 'undefined' ? Notification.permission : 'default')
   const [filters,  setFilters] = useState({ filter:'all', sortBy:'date_desc', search:'', startDate:'', endDate:'', statusFilter:'' })
 
   const uid = user._id
@@ -93,12 +92,12 @@ export default function UserApp({ user, onLogout, showToast }) {
   return (
     <div style={{display:'flex',flexDirection:'column',height:'100dvh',overflow:'hidden'}}>
       {/* Top bar */}
-      <div style={{flexShrink:0,background:'rgba(15,15,19,.96)',backdropFilter:'blur(10px)',borderBottom:'1px solid #2a2a40',padding:'9px 14px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+      <div style={{flexShrink:0,background:'rgba(15,15,19,.96)',backdropFilter:'blur(10px)',borderBottom:'1px solid var(--border)',padding:'9px 14px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
         <div style={{display:'flex',alignItems:'center',gap:8}}>
           <div style={{width:28,height:28,borderRadius:8,background:'linear-gradient(135deg,#f97316,#ef4444)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14}}>🏠</div>
           <div>
             <p style={{fontSize:12,fontWeight:800,lineHeight:1}}>घर खर्चा</p>
-            <p style={{fontSize:10,color:'#6b6b88'}}>{user.displayName||user.username}</p>
+            <p style={{fontSize:10,color:'var(--muted)'}}>{user.displayName||user.username}</p>
           </div>
         </div>
         <button onClick={onLogout} style={{background:'rgba(239,68,68,.1)',border:'1px solid rgba(239,68,68,.3)',color:'#ef4444',borderRadius:7,padding:'5px 10px',fontSize:11,fontWeight:700}}>
@@ -106,30 +105,16 @@ export default function UserApp({ user, onLogout, showToast }) {
         </button>
       </div>
 
-      {/* Notification permission banner */}
-      {notifPerm !== 'granted' && notifPerm !== 'denied' && (
-        <div style={{flexShrink:0,background:'rgba(245,158,11,.1)',borderBottom:'1px solid rgba(245,158,11,.25)',padding:'8px 14px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:8}}>
-          <p style={{fontSize:11,color:'#f59e0b',fontWeight:600}}>🔔 Deadline reminders साठी notification enable करा</p>
-          <button onClick={async()=>{const p=await requestNotificationPermission();setNotifPerm(p)}}
-            style={{background:'#f59e0b',color:'#000',borderRadius:7,padding:'5px 11px',fontSize:11,fontWeight:800,flexShrink:0}}>
-            Enable
-          </button>
-        </div>
-      )}
-
-      {/* Push notification manager (invisible) */}
-      <NotificationManager user={user} onOpenExpense={id=>{ /* TODO: highlight record */ }}/>
-
       {/* Content */}
       <div style={{flex:1,overflowY:'auto',paddingBottom:64}}>
         {tab==='home'     && <Dashboard todayExpenses={todayExp} summary={summary} yearlyData={yearly} onDelete={handleDelete} onEdit={handleEdit} onStatusChange={handleStatus} userName={user.displayName||user.username} deadlines={deadlines} userWhatsapp={user.whatsappNumber||''}/>}
         {tab==='list'     && <ExpenseList expenses={allExp} filters={filters} setFilters={setFilters} onDelete={handleDelete} onEdit={handleEdit} onStatusChange={handleStatus} loading={listLoad}/>}
         {tab==='add'      && <AddExpense editExpense={editItem} onSave={handleSave} onCancel={()=>{setEdit(null);setTab('home')}} userId={uid} loading={saving}/>}
-        {tab==='download' && <DownloadPage userId={uid} userName={user.displayName||user.username} showToast={showToast}/>}
+        {tab==='download' && <DownloadPage userId={uid} userName={user.displayName||user.username} showToast={showToast} user={user} theme={theme} setTheme={setTheme}/>}
       </div>
 
       {/* Bottom Nav */}
-      <nav style={{flexShrink:0,background:'rgba(22,22,30,.98)',backdropFilter:'blur(20px)',borderTop:'1px solid #2a2a40',display:'flex',alignItems:'center',justifyContent:'space-around',padding:'5px 0 12px'}}>
+      <nav style={{flexShrink:0,background:'rgba(22,22,30,.98)',backdropFilter:'blur(20px)',borderTop:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'space-around',padding:'5px 0 12px'}}>
         {navItems.map(t=>(
           <button key={t.id} onClick={()=>{if(t.id!=='add')setEdit(null);setTab(t.id)}}
             style={{display:'flex',flexDirection:'column',alignItems:'center',gap:2,background:t.special?'linear-gradient(135deg,#f97316,#ef4444)':'transparent',borderRadius:t.special?'50%':7,width:t.special?48:54,height:t.special?48:'auto',marginTop:t.special?'-14px':0,padding:t.special?0:'4px 8px',boxShadow:t.special?'0 4px 20px rgba(249,115,22,.5)':'none',color:tab===t.id?(t.special?'#fff':'#f97316'):'#6b6b88',justifyContent:'center'}}>

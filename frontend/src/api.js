@@ -10,7 +10,7 @@
 //   For local development, vite.config.js proxies /api to localhost:3001
 // ─────────────────────────────────────────────────────────────────────────────
 
-const BASE = import.meta.env.VITE_API_URL || 'https://ghar-kharcha-v3-2.onrender.com'
+const BASE = import.meta.env.VITE_API_URL || ''
 
 async function req(method, path, body) {
   const opts = {
