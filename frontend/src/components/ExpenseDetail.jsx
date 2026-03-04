@@ -47,7 +47,7 @@ export default function ExpenseDetail({ expense: e, onClose, onEdit, onDelete })
 
   const row = (label, value, color) => (
     <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',padding:'9px 0',borderBottom:'1px solid #22223a'}}>
-      <span style={{fontSize:11,color:'var(--muted)',fontWeight:600,minWidth:110}}>{label}</span>
+      <span style={{fontSize:11,color:'#6b6b88',fontWeight:600,minWidth:110}}>{label}</span>
       <span style={{fontSize:12,fontWeight:700,color:color||'#f1f0ff',textAlign:'right',flex:1,marginLeft:8}}>{value||'—'}</span>
     </div>
   )
@@ -58,21 +58,21 @@ export default function ExpenseDetail({ expense: e, onClose, onEdit, onDelete })
       <div onClick={onClose} style={{position:'fixed',inset:0,zIndex:299,background:'rgba(0,0,0,.7)',backdropFilter:'blur(4px)'}}/>
 
       {/* Sheet */}
-      <div style={{position:'fixed',bottom:0,left:'50%',transform:'translateX(-50%)',width:'100%',maxWidth:430,zIndex:300,background:'var(--card)',borderRadius:'22px 22px 0 0',border:'1px solid var(--border)',maxHeight:'88dvh',overflowY:'auto',animation:'slideUp .32s cubic-bezier(.34,1.1,.64,1)'}}>
+      <div style={{position:'fixed',bottom:0,left:'50%',transform:'translateX(-50%)',width:'100%',maxWidth:430,zIndex:300,background:'#1a1a25',borderRadius:'22px 22px 0 0',border:'1px solid #2a2a40',maxHeight:'88dvh',overflowY:'auto',animation:'slideUp .32s cubic-bezier(.34,1.1,.64,1)'}}>
 
         {/* Handle */}
         <div style={{width:36,height:4,background:'#2a2a40',borderRadius:4,margin:'14px auto 0'}}/>
 
         {/* Header */}
-        <div style={{padding:'14px 16px 12px',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'flex-start',gap:12}}>
+        <div style={{padding:'14px 16px 12px',borderBottom:'1px solid #2a2a40',display:'flex',alignItems:'flex-start',gap:12}}>
           <div style={{width:46,height:46,borderRadius:13,flexShrink:0,background:isPay?'rgba(239,68,68,.1)':'rgba(34,197,94,.1)',border:`1px solid ${isPay?'#ef444428':'#22c55e28'}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:20}}>
             {CAT_ICONS[e.category]||'📌'}
           </div>
           <div style={{flex:1,minWidth:0}}>
-            <p style={{fontWeight:800,fontSize:16,color:'var(--text)',wordBreak:'break-word'}}>{e.name}</p>
+            <p style={{fontWeight:800,fontSize:16,color:'#f1f0ff',wordBreak:'break-word'}}>{e.name}</p>
             <p style={{fontSize:22,fontWeight:800,color:isPay?'#ef4444':'#22c55e',marginTop:2}}>{isPay?'−':'+'} {fmt(e.amount)}</p>
           </div>
-          <button onClick={onClose} style={{background:'var(--card2)',border:'1px solid var(--border)',color:'var(--text2)',width:32,height:32,borderRadius:9,fontSize:16,flexShrink:0}}>✕</button>
+          <button onClick={onClose} style={{background:'#22223a',border:'1px solid #2a2a40',color:'#9b9bb8',width:32,height:32,borderRadius:9,fontSize:16,flexShrink:0}}>✕</button>
         </div>
 
         {/* Details */}
@@ -86,8 +86,8 @@ export default function ExpenseDetail({ expense: e, onClose, onEdit, onDelete })
           {e.note     && row('📝 टीप',        e.note)}
 
           {/* Audit trail */}
-          <div style={{background:'var(--surface)',borderRadius:11,padding:'10px 12px',marginTop:12,border:'1px solid var(--border)'}}>
-            <p style={{fontSize:10,color:'var(--muted)',fontWeight:700,letterSpacing:1.2,marginBottom:8}}>📋 AUDIT TRAIL</p>
+          <div style={{background:'#16161e',borderRadius:11,padding:'10px 12px',marginTop:12,border:'1px solid #2a2a40'}}>
+            <p style={{fontSize:10,color:'#6b6b88',fontWeight:700,letterSpacing:1.2,marginBottom:8}}>📋 AUDIT TRAIL</p>
             {row('🕒 तयार केले',   fmtDT(e.createdAt))}
             {e.createdBy  && row('👤 तयार केले by', e.createdBy)}
             {e.modifiedAt && row('✏️ बदलले',       fmtDT(e.modifiedAt))}
