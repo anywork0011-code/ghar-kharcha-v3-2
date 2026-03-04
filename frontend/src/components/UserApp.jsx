@@ -3,6 +3,7 @@ import Dashboard    from './Dashboard.jsx'
 import ExpenseList  from './ExpenseList.jsx'
 import AddExpense   from './AddExpense.jsx'
 import DownloadPage from './DownloadPage.jsx'
+import NotificationManager, { requestNotificationPermission } from './NotificationManager.jsx'
 import {
   apiGetToday, apiGetExpenses, apiGetSummary, apiGetYearly,
   apiAddExpense, apiUpdateExpense, apiDeleteExpense, apiUpdateStatus, apiGetDeadlines,
@@ -18,6 +19,7 @@ export default function UserApp({ user, onLogout, showToast }) {
   const [saving,   setSaving]  = useState(false)
   const [listLoad, setListLoad]= useState(false)
   const [deadlines, setDeadlines] = useState([])
+  const [notifPerm, setNotifPerm] = useState(() => typeof Notification !== 'undefined' ? Notification.permission : 'default')
   const [filters,  setFilters] = useState({ filter:'all', sortBy:'date_desc', search:'', startDate:'', endDate:'', statusFilter:'' })
 
   const uid = user._id
@@ -48,10 +50,10 @@ export default function UserApp({ user, onLogout, showToast }) {
     setSaving(true)
     try {
       if (editItem) {
-        await apiUpdateExpense(editItem._id, { ...data, userId: uid })
+        await apiUpdateExpense(editItem._id, { ...data, userId: uid, modifiedBy: user.displayName||user.username })
         showToast('नोंद बदलली! ✏️')
       } else {
-        await apiAddExpense({ ...data, userId: uid })
+        await apiAddExpense({ ...data, userId: uid, createdBy: user.displayName||user.username, modifiedBy: user.displayName||user.username })
         showToast('नोंद जोडली! ✅')
       }
       setEdit(null)
@@ -103,6 +105,20 @@ export default function UserApp({ user, onLogout, showToast }) {
           बाहेर पडा
         </button>
       </div>
+
+      {/* Notification permission banner */}
+      {notifPerm !== 'granted' && notifPerm !== 'denied' && (
+        <div style={{flexShrink:0,background:'rgba(245,158,11,.1)',borderBottom:'1px solid rgba(245,158,11,.25)',padding:'8px 14px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:8}}>
+          <p style={{fontSize:11,color:'#f59e0b',fontWeight:600}}>🔔 Deadline reminders साठी notification enable करा</p>
+          <button onClick={async()=>{const p=await requestNotificationPermission();setNotifPerm(p)}}
+            style={{background:'#f59e0b',color:'#000',borderRadius:7,padding:'5px 11px',fontSize:11,fontWeight:800,flexShrink:0}}>
+            Enable
+          </button>
+        </div>
+      )}
+
+      {/* Push notification manager (invisible) */}
+      <NotificationManager user={user} onOpenExpense={id=>{ /* TODO: highlight record */ }}/>
 
       {/* Content */}
       <div style={{flex:1,overflowY:'auto',paddingBottom:64}}>

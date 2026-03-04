@@ -44,8 +44,20 @@ const expenseSchema = new mongoose.Schema({
   deadline:      { type: String, default: '' },  // DD/MM/YYYY optional
   date:          { type: String, required: true },  // DD/MM/YYYY
   createdAt:     { type: Date, default: Date.now },
+  updatedAt:     { type: Date, default: Date.now },
+  createdBy:     { type: String, default: '' },   // username who created
+  modifiedBy:    { type: String, default: '' },   // username who last modified
+  modifiedAt:    { type: Date },
 })
 const Expense = mongoose.model('Expense', expenseSchema)
+
+// Push notification subscriptions
+const pushSchema = new mongoose.Schema({
+  userId:       { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  subscription: { type: Object, required: true },  // browser push subscription object
+  createdAt:    { type: Date, default: Date.now },
+})
+const PushSub = mongoose.model('PushSub', pushSchema)
 
 // ── Seed admin on first run ───────────────────────────────────────────────
 mongoose.connection.once('open', async () => {
@@ -211,14 +223,15 @@ app.get('/api/expenses', async (req, res) => {
 
 app.post('/api/expenses', async (req, res) => {
   try {
-    const expense = await Expense.create(req.body)
+    const expense = await Expense.create({ ...req.body, createdAt: new Date(), updatedAt: new Date() })
     res.status(201).json(expense)
   } catch (err) { res.status(400).json({ error: err.message }) }
 })
 
 app.put('/api/expenses/:id', async (req, res) => {
   try {
-    const expense = await Expense.findByIdAndUpdate(req.params.id, req.body, { new: true })
+    const update = { ...req.body, updatedAt: new Date(), modifiedAt: new Date() }
+    const expense = await Expense.findByIdAndUpdate(req.params.id, update, { new: true })
     if (!expense) return res.status(404).json({ error: 'Not found' })
     res.json(expense)
   } catch (err) { res.status(400).json({ error: err.message }) }
@@ -272,6 +285,55 @@ app.get('/api/expenses/deadlines', async (req, res) => {
       return d && d <= today && e.paymentStatus !== 'paid' && e.paymentStatus !== 'received'
     })
     res.json(due)
+  } catch (err) { res.status(500).json({ error: err.message }) }
+})
+
+// ── Push Notification Subscriptions ──────────────────────────────────────────
+app.post('/api/push/subscribe', async (req, res) => {
+  try {
+    const { userId, subscription } = req.body
+    // Upsert — one subscription per user (replace old)
+    await PushSub.findOneAndUpdate(
+      { userId },
+      { userId, subscription, createdAt: new Date() },
+      { upsert: true, new: true }
+    )
+    res.json({ success: true })
+  } catch (err) { res.status(400).json({ error: err.message }) }
+})
+
+app.delete('/api/push/unsubscribe', async (req, res) => {
+  try {
+    const { userId } = req.body
+    await PushSub.deleteMany({ userId })
+    res.json({ success: true })
+  } catch (err) { res.status(400).json({ error: err.message }) }
+})
+
+// Called by a cron job or client to trigger deadline notifications
+app.post('/api/push/send-deadline-reminders', async (req, res) => {
+  try {
+    const now   = new Date(); now.setHours(23,59,59,999)
+    const soon  = new Date(); soon.setDate(soon.getDate()+1); soon.setHours(23,59,59,999)
+    // Find all expenses with a deadline within next 24h or already overdue, not yet paid
+    const expenses = await Expense.find({
+      deadline: { $ne: '' },
+      paymentStatus: { $in: ['unpaid', 'not_received'] }
+    })
+    const due = expenses.filter(e => {
+      if (!e.deadline) return false
+      const d = parseDate(e.deadline)
+      return d && d <= soon
+    })
+    const results = []
+    for (const exp of due) {
+      const subs = await PushSub.find({ userId: exp.userId })
+      for (const sub of subs) {
+        results.push({ expenseId: exp._id, name: exp.name, deadline: exp.deadline, amount: exp.amount, phone: exp.phone || '' })
+      }
+    }
+    // Return due items with subscription info so client can display
+    res.json({ due: results, count: results.length })
   } catch (err) { res.status(500).json({ error: err.message }) }
 })
 
