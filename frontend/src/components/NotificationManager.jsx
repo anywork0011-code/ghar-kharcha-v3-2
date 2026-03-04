@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react'
 
-const BASE = import.meta.env.VITE_API_URL || ''
+const BASE = import.meta.env.VITE_API_URL || 'https://ghar-kharcha-v3-2.onrender.com'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function urlBase64ToUint8Array(base64String) {
